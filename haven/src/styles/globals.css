@@ -1,6 +1,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-body: var(--font-inter);
+  --font-logo: var(--font-logo);
 }
 
 @media (prefers-color-scheme: dark) {
