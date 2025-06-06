@@ -3,7 +3,8 @@ import styles from "@/styles/Auth.module.css";
 import { useRouter } from 'next/router';
 import type { UserRole } from '@/types/UserRole';
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
+
 
 export default function Login() {
     const [role, setRole] = useState<UserRole>('user');
@@ -26,13 +27,17 @@ export default function Login() {
             setError("Invalid email or password");
         } else {
 
-            if (role === "user") {
+           const session = await getSession();
+
+           if (session?.user?.role === "user") {
                 router.push("/userdashboard");
-            } else {
+           } else if (session?.user?.role === "artisan") {
                 router.push("/dashboard");
-            }
+           } else {
+                setError("Unknown role. Please contact support.");
+           } 
         }
-    }
+    };
 
         // if (email && password) {
         //     role === "user" ? router.push("/") : router.push("/dashboard")
@@ -44,7 +49,7 @@ export default function Login() {
             <h1>Login</h1>
             <form onSubmit={handleLogin} className={styles.form}>
                 {error && <p style={{ color: "red" }}>{error}</p>}
-                <div className={styles.roleSwitch}>
+                {/* <div className={styles.roleSwitch}>
                     <label>
                         <input 
                         type="radio" 
@@ -66,7 +71,7 @@ export default function Login() {
                         />
                         Artisan
                     </label>
-                </div>
+                </div> */}
 
                 <input 
                 type="email" 

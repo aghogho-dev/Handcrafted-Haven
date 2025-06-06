@@ -1,7 +1,8 @@
-import NextAuth, { NextAuthOptions, SessionStrategy } from "next-auth";
+import NextAuth, { SessionStrategy } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoClient } from "mongodb";
 import { compare } from "bcryptjs";
+import { UserRole } from "@/types/UserRole";
 
 const clientPromise = MongoClient.connect(process.env.MONGODB_URI!);
 
@@ -15,20 +16,32 @@ export const authOptions = {
             },
             async authorize(credentials) {
                 const client = await clientPromise;
-                const usersCollection = client.db("haven").collection("users");
+                const db = client.db("haven");
 
-                const user = await usersCollection.findOne({ email: credentials!.email });
+                const email = credentials!.email;
+                const password = credentials!.password;
 
-                if (!user) {
-                    throw new Error("No user found with the provided email.");
+                let account = await db.collection("users").findOne({ email });
+                let accountType = "user";
+                
+                
+                if (!account) {
+                    account = await db.collection("artisans").findOne({ email });
+                    accountType = "artisan";
                 }
 
-                const isValidPassword = await compare(credentials!.password, user.password);
+                if (!account) {
+                    throw new Error("No account found with the given email.");
+                }
+
+                const isValidPassword = await compare(credentials!.password, account.password);
+
                 if (!isValidPassword) {
                     throw new Error("Invalid password.");
                 }
 
-                return { id: user._id.toString(), email: user.email, name: user.name, role: user.role };
+                return { id: account._id.toString(), email: account.email, name: account.name, role: account.role };
+                
             }
         })
     ],
@@ -47,7 +60,7 @@ export const authOptions = {
                 token.id = user.id;
                 token.email = user.email;
                 token.name = user.name;
-                token.role = user.role;
+                token.role = (user as any).role as UserRole;
             }
             return token;
         },
@@ -56,7 +69,7 @@ export const authOptions = {
                 session.user.id = token.id;
                 session.user.email = token.email;
                 session.user.name = token.name;
-                session.user.role = token.role;
+                session.user.role = token.role as UserRole;
             }
             return session;
         }

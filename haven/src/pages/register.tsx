@@ -40,11 +40,14 @@ export default function Register() {
                 role: data.userInfo.role,
             }));
 
-            if (role === "user") {
-                router.push("/");
-            } else {
-                router.push("/dashboard");
-            }
+            // if (role === "user") {
+            //     router.push("/");
+            // } else {
+            //     router.push("/dashboard");
+            // }
+
+            router.push("/login");
+            
         } catch (err) {
             console.error(err);
             setError('Something went wrong. Please try again later.');

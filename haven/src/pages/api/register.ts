@@ -33,21 +33,37 @@ export default async function handler(
         const client = await clientPromise;
         const db = client.db("haven");
         const users = db.collection("users");
+        const artisans = db.collection("artisans");
+        
 
-        const existing = await users.findOne({ email });
-        if (existing) {
+        const existingUser = await users.findOne({ email });
+        const existingArtisan = await artisans.findOne({ email });
+
+        if (existingUser || existingArtisan) {
             return res.status(409).json({message: "Email already registered"});
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        await users.insertOne({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-            createdAt: new Date(),
-        });
+        
+        if (role === "user") {
+            
+            await users.insertOne({
+                name,
+                email,
+                password: hashedPassword,
+                role,
+                createdAt: new Date(),
+            });
+        } else if (role === "artisan") {
+            
+            await artisans.insertOne({
+                name,
+                email,
+                password: hashedPassword,
+                role,
+                createdAt: new Date(),
+            });
+        }
 
         return res.status(201).json({
             message: "Register successfully",
