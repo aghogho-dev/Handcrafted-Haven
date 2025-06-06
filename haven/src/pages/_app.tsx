@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import { Inter, Pacifico } from "next/font/google";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { SessionProvider } from "next-auth/react";
 
 
 const inter = Inter({ 
@@ -18,12 +19,14 @@ const pacifico = Pacifico({
   display: "swap",
 });
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps: { session, ...pageProps} }: AppProps) {
   return (
-    <main className={`${inter.variable} ${pacifico.variable}`}>
-      <Navbar />
-      <Component {...pageProps} />
-      <Footer />
-    </main>
+    <SessionProvider session={session}>
+      <main className={`${inter.variable} ${pacifico.variable}`}>
+        <Navbar />
+        <Component {...pageProps} />
+        <Footer />
+      </main>
+    </SessionProvider>
   );
 }

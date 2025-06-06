@@ -24,11 +24,21 @@ export default function Register() {
                 body: JSON.stringify({ name, email, password, role }),
             });
 
+            const data = await res.json();
+
+            console.log(data);
+
             if (!res.ok) {
-                const { message } = await res.json();
-                setError(message || 'Registration failed');
+                // const { message } = await res.json();
+                setError(data.message || 'Registration failed');
                 return;
             }
+
+            localStorage.setItem('userInfo', JSON.stringify({
+                name: data.userInfo.name,
+                email: data.userInfo.email,
+                role: data.userInfo.role,
+            }));
 
             if (role === "user") {
                 router.push("/");

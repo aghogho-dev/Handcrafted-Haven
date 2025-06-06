@@ -3,25 +3,47 @@ import styles from "@/styles/Auth.module.css";
 import { useRouter } from 'next/router';
 import type { UserRole } from '@/types/UserRole';
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function Login() {
     const [role, setRole] = useState<UserRole>('user');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState("");
     const router = useRouter();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (email && password) {
-            role === "user" ? router.push("/") : router.push("/dashboard")
+        const res = await signIn("credentials", {
+            redirect: false,
+            email,
+            password,
+            callbackUrl: "/"
+        });
+
+        if (res?.error) {
+            setError("Invalid email or password");
+        } else {
+
+            if (role === "user") {
+                router.push("/userdashboard");
+            } else {
+                router.push("/dashboard");
+            }
         }
-    };
+    }
+
+        // if (email && password) {
+        //     role === "user" ? router.push("/") : router.push("/dashboard")
+        // }
+
 
     return (
         <div className={styles.container}>
             <h1>Login</h1>
             <form onSubmit={handleLogin} className={styles.form}>
+                {error && <p style={{ color: "red" }}>{error}</p>}
                 <div className={styles.roleSwitch}>
                     <label>
                         <input 
