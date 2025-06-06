@@ -32,7 +32,7 @@ export default function Login() {
            if (session?.user?.role === "user") {
                 router.push("/userdashboard");
            } else if (session?.user?.role === "artisan") {
-                router.push("/dashboard");
+                router.push("/seller");
            } else {
                 setError("Unknown role. Please contact support.");
            } 
