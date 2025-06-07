@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             const client = await clientPromise;
             const db = client.db("haven");
-            const product = { title, description, price: parseFloat(price), category, createdBy, createdAt: new Date() };
+            const product = { title, description, price: parseFloat(price), image, category, createdBy, createdAt: new Date() };
 
             const result = await db.collection("products").insertOne(product);
 
