@@ -3,6 +3,7 @@ import ProductUpload from "./upload";
 import styles from "@/styles/ArtDashboard.module.css";
 import modalStyles from "@/styles/ArtModal.module.css";
 import ArtisanProducts from "@/components/ArtisanProducts";
+import ArtisanProfile from "@/components/ArtisanProfile";
 
 export default function ArtisanDashboard() {
     const [activeTab, setActiveTab] = useState<"upload" | "profile" | null>(null);
@@ -23,7 +24,7 @@ export default function ArtisanDashboard() {
                     <div className={modalStyles.modalContent}>
                         <button onClick={closeModal} className={modalStyles.closeButton}>&times;</button>
                         {activeTab === "upload" && <ProductUpload />}
-                        {activeTab === "profile" && <div>Create Profile Form</div>}
+                        {activeTab === "profile" && <ArtisanProfile onSuccess={closeModal} />}
                     </div>
                 </div>
             )}
