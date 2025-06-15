@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import styles from "@/styles/UserProductList.module.css";
+import ReviewDetail from "@/components/ReviewDetail";
+import StarRating from "@/components/StarRating";
+
 
 type Product = {
   _id: string;
@@ -11,7 +14,9 @@ type Product = {
   image?: string;
   createdBy: string;
   createdAt: string;
+  reviews?: { rating: number }[];
 };
+
 
 type Profile = {
   name: string;
@@ -26,9 +31,6 @@ export default function UserProductList() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [followedProducts, setFollowedProducts] = useState<Product[]>([]);
-//   const [followedArtisanEmails, setFollowedArtisanEmails] = useState<string[]>([]);
-//   const [selectedArtisanEmail, setSelectedArtisanEmail] = useState<string | null>(null);
-//   const [showArtisanProductsModal, setShowArtisanProductsModal] = useState(false);
 
   const [followedArtisanEmails, setFollowedArtisanEmails] = useState<string[]>([]);
   const [selectedArtisanEmail, setSelectedArtisanEmail] = useState<string | null>(null);
@@ -41,6 +43,9 @@ export default function UserProductList() {
   const [category, setCategory] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+
+  const [reviewingProductId, setReviewingProductId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     async function fetchUserProducts() {
@@ -92,18 +97,6 @@ export default function UserProductList() {
     }, [session?.user?.email]);
 
 
-
-//   useEffect(() => {
-//     async function fetchFollowed() {
-//       if (!session?.user?.email) return;
-//       const res = await fetch(`/api/followed?userEmail=${session.user.email}`);
-//       const data = await res.json();
-//       setFollowedProducts(data);
-//     }
-
-//     fetchFollowed();
-//   }, [session?.user?.email]);
-
   async function handleArtisanClick(email: string) {
     try {
       const res = await fetch(`/api/profiles/${encodeURIComponent(email)}`);
@@ -118,6 +111,8 @@ export default function UserProductList() {
   function handleAddToCart(product: Product) {
     console.log("Added to cart:", product);
     alert(`Added "${product.title}" to cart.`);
+    setReviewingProductId(product._id);
+    setSelectedProduct(product);
   }
 
   async function handleFollow() {
@@ -149,6 +144,13 @@ export default function UserProductList() {
         console.error("Failed to load artisan products:", err);
     }
   }
+
+  function getAverageRating(reviews: { rating: number }[] = []) {
+      if (!reviews.length) return "5";
+      const total = reviews.reduce((acc, r) => acc + r.rating, 0);
+      return (total / reviews.length).toFixed(2);
+  }
+
 
 
 
@@ -198,6 +200,13 @@ export default function UserProductList() {
               <p>{product.title}</p>
               <p>{product.description}</p>
               <p><strong>${product.price}</strong></p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <StarRating rating={parseFloat(getAverageRating(product.reviews))} />
+                <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                  ({product.reviews?.length ?? 0})
+                </span>
+              </div>
+
               <p>
                 Artisan:{" "}
                 <span
@@ -224,7 +233,7 @@ export default function UserProductList() {
               onClick={() => setModalOpen(false)}
               style={{ float: "right", fontWeight: "bold" }}
             >
-              ×
+              &times;
             </button>
             <h3>{selectedProfile.name}</h3>
             <p><strong>Email:</strong> {selectedProfile.email}</p>
@@ -266,7 +275,7 @@ export default function UserProductList() {
                 style={{ float: "right", fontWeight: "bold" }}
                 className={styles.modalClose}
                 >
-                ×
+                &times;
             </button>
             <h3>Products by {selectedArtisanEmail}</h3>
             </div>
@@ -279,6 +288,13 @@ export default function UserProductList() {
                         <img src={product.image} alt={product.title} width={150} />
                         <p>{product.title}</p>
                         <p>${product.price}</p>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <StarRating rating={parseFloat(getAverageRating(product.reviews))} />
+                          <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                            ({product.reviews?.length ?? 0})
+                          </span>
+                        </div>
 
                         <div className={styles.actions}>
                             <button className={styles.button} onClick={() => handleAddToCart(product)}>
@@ -295,6 +311,31 @@ export default function UserProductList() {
     )}
     </div>
 
+    {reviewingProductId && selectedProduct && (
+        <ReviewDetail
+          productTitle={selectedProduct.title}
+          onClose={() => {
+            setReviewingProductId(null);
+            setSelectedProduct(null);
+          }}
+          onSubmit={async (rating, comment) => {
+            const res = await fetch("/api/review", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                productId: reviewingProductId,
+                rating,
+                comment
+              })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+            setReviewingProductId(null);
+            setSelectedProduct(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -15,11 +15,18 @@ export const authOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
+                console.log("---Authorize function started---")
+                console.log("Received credentials:", credentials);
+
+                if (!credentials || !credentials.email || !credentials.password) {
+                    console.log("Authorize: Missing email or password in credentials.");
+                    return null; 
+                }
                 const client = await clientPromise;
                 const db = client.db("haven");
 
-                const email = credentials!.email;
-                const password = credentials!.password;
+                const email = credentials.email;
+                const password = credentials.password;
 
                 let account = await db.collection("users").findOne({ email });
                 let accountType = "user";
