@@ -7,16 +7,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const collection = db.collection("products");
 
     if (req.method === "GET") {
-        const { createdBy } = req.query;
 
-        if (!createdBy || typeof createdBy !== "string") {
-            return res.status(400).json({ message: "Missing or invaled createdBy param" });
+        try {
+
+            const { createdBy } = req.query;
+
+        // if (!createdBy || typeof createdBy !== "string") {
+        //     return res.status(400).json({ message: "Missing or invaled createdBy param" });
+        // }
+
+            const query = createdBy && typeof createdBy === "string" ? { createdBy } : {};
+
+            const products = await collection.find(query).toArray();
+            return res.status(200).json(products);
+
+        } catch (error) {
+            console.error("Failed to fetch products:", error);
+            return res.status(500).json({ message: "Internal Server Error" });
         }
-
-        const products = await collection.find({ createdBy }).toArray();
-        return res.status(200).json(products);
+        
     }
 
-    res.setHeader("Allow", ["GET"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    // res.setHeader("Allow", ["GET"]);
+    // res.status(405).end(`Method ${req.method} Not Allowed`);
 }

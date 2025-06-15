@@ -1,3 +1,10 @@
+import ProductsByCategory from "@/components/UserProductList";
+
 export default function UserDashboard() {
-    return <p>Welcome to the User side</p>
+    return (
+
+    <div>
+        <ProductsByCategory />
+    </div>
+    );
 }
